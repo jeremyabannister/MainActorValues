@@ -134,7 +134,7 @@ internal func setupChangeNotificationForwarding<
     }
     
     ///
-    let retainer: MainActorValueSource<Any?> =
+    let retainer: MainActorValueSource<(any Sendable)?> =
         .init(
             initialValue: nil,
             leakTracker: leakTracker

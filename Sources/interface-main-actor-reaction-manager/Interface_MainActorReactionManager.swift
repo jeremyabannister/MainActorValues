@@ -10,7 +10,7 @@
 
 
 ///
-public protocol Interface_MainActorReactionManager <Event> {
+public protocol Interface_MainActorReactionManager<Event>: Sendable {
     
     ///
     func _registerReaction_weakClosure(

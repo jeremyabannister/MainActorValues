@@ -10,18 +10,18 @@
 
 
 ///
+@MainActor
 public struct MainActorValue<Value>: Interface_ReadableMainActorValue {
     
     ///
-    public init(_ fetchValue: @escaping @MainActor ()->Value) {
+    public nonisolated init(_ fetchValue: @escaping @MainActor ()->Value) {
         self.fetchValue = fetchValue
     }
     
     ///
-    private let fetchValue: @MainActor ()->Value
+    private nonisolated let fetchValue: @MainActor ()->Value
     
     ///
-    @MainActor
     public var currentValue: Value {
         fetchValue()
     }

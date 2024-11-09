@@ -26,7 +26,7 @@ public struct SubscribableMainActorValueBinding<
     ///
     public init(
         subscribableValue: any Interface_SubscribableMainActorValue<Value>,
-        setValue: @escaping (Value)->()
+        setValue: @escaping @MainActor (Value)->()
     ) {
         self.subscribableValue = subscribableValue
         self.setValue = setValue
@@ -56,7 +56,7 @@ extension SubscribableMainActorValueBinding {
     public func map<
         NewValue
     >(
-        _ keyPath: WritableKeyPath<Value, NewValue>
+        _ keyPath: WritableKeyPath<Value, NewValue> & Sendable
     ) -> SubscribableMainActorValueBinding<NewValue> {
         
         ///
@@ -70,7 +70,7 @@ extension SubscribableMainActorValueBinding {
     public func map<
         NewValue
     >(
-        get: @escaping (Value)->NewValue,
+        get: @escaping @Sendable (Value)->NewValue,
         set: @escaping (inout Value, NewValue)->()
     ) -> SubscribableMainActorValueBinding<NewValue> {
         

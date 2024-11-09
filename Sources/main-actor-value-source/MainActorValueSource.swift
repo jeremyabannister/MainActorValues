@@ -7,11 +7,20 @@
 
 ///
 @MainActor
-public final class MainActorValueSource<Value>: Interface_SubscribableMainActorValue,
-                                                Interface_MainActorValueSource,
-                                                ReferenceType {
+public final class MainActorValueSource<Value: Sendable>:
+    Interface_SubscribableMainActorValue,
+    Interface_MainActorValueSource,
+    ReferenceType {
     
-    ///
+    package nonisolated let _willSet: MainActorReactionManager<Void>
+    package nonisolated let _didSet: MainActorReactionManager<Value>
+    private var _valueStorage: ValueStorage
+    
+    private enum ValueStorage: Sendable {
+        case value(Value)
+        case notYetComputed(@Sendable @MainActor ()->Value)
+    }
+    
     public convenience init(
         initialValue: Value,
         leakTracker: LeakTracker,
@@ -19,13 +28,11 @@ public final class MainActorValueSource<Value>: Interface_SubscribableMainActorV
     )
     where Value: Interface_MainActorValueSourceAccessor {
         
-        ///
         self.init(
             initialValue: initialValue,
             leakTracker: leakTracker
         )
         
-        ///
         setupChangeNotificationForwarding(
             sourceObjectID: self.objectID,
             generateValue: .init { [weak self] in self?.currentValue },
@@ -35,27 +42,21 @@ public final class MainActorValueSource<Value>: Interface_SubscribableMainActorV
         )
     }
     
-    ///
     public convenience init(
         initialValue: Value,
         leakTracker: LeakTracker
     ) {
-        
-        ///
         self.init(
             _valueStorage: .value(initialValue),
             leakTracker: leakTracker
         )
     }
     
-    ///
     public nonisolated convenience init(
         initialValue: Value,
         leakTracker: LeakTracker,
         nonisolatedOverload: Void
     ) {
-        
-        ///
         self.init(
             _valueStorage: .value(initialValue),
             leakTracker: leakTracker,
@@ -63,27 +64,21 @@ public final class MainActorValueSource<Value>: Interface_SubscribableMainActorV
         )
     }
     
-    ///
     public convenience init(
-        uninitializedValue: @escaping @MainActor ()->Value,
+        uninitializedValue: @escaping @Sendable @MainActor ()->Value,
         leakTracker: LeakTracker
     ) {
-        
-        ///
         self.init(
             _valueStorage: .notYetComputed(uninitializedValue),
             leakTracker: leakTracker
         )
     }
     
-    ///
     public nonisolated convenience init(
-        uninitializedValue: @escaping @MainActor ()->Value,
+        uninitializedValue: @escaping @Sendable @MainActor ()->Value,
         leakTracker: LeakTracker,
         nonisolatedOverload: Void
     ) {
-        
-        ///
         self.init(
             _valueStorage: .notYetComputed(uninitializedValue),
             leakTracker: leakTracker,
@@ -91,13 +86,10 @@ public final class MainActorValueSource<Value>: Interface_SubscribableMainActorV
         )
     }
     
-    ///
     private init(
         _valueStorage: ValueStorage,
         leakTracker: LeakTracker
     ) {
-        
-        ///
         self._valueStorage = _valueStorage
         self._willSet =
             MainActorReactionManager(
@@ -108,18 +100,14 @@ public final class MainActorValueSource<Value>: Interface_SubscribableMainActorV
                 leakTracker: leakTracker["_didSet"]
             )
         
-        ///
         leakTracker.track(self)
     }
     
-    ///
     private nonisolated init(
         _valueStorage: ValueStorage,
         leakTracker: LeakTracker,
         nonisolatedOverload: Void
     ) {
-        
-        ///
         self._valueStorage = _valueStorage
         self._willSet =
             MainActorReactionManager(
@@ -132,104 +120,60 @@ public final class MainActorValueSource<Value>: Interface_SubscribableMainActorV
                 nonisolatedOverload: ()
             )
         
-        ///
         Task { @MainActor in
             leakTracker.track(self)
         }
     }
-    
-    ///
-    private var _valueStorage: ValueStorage
-    
-    ///
-    private enum ValueStorage {
-        case value(Value)
-        case notYetComputed(@MainActor ()->Value)
-    }
-    
-    ///
-    package nonisolated let _willSet: MainActorReactionManager<Void>
-    package nonisolated let _didSet: MainActorReactionManager<Value>
 }
 
-///
 internal extension MainActorValueSource {
     
     /// We need didSet_erased internally because for older OS versions we don't have "runtime support for parameterized protocol types".
     nonisolated var didSet_erased: any Interface_MainActorReactionManager { _didSet }
 }
 
-///
 extension MainActorValueSource {
     
-    ///
     public nonisolated var willSet: any Interface_MainActorReactionManager<Void> { _willSet }
     public nonisolated var didSet: any Interface_MainActorReactionManager<Value> { _didSet }
     
-    ///
     public var currentValue: Value {
-        
-        ///
         get {
-            
-            ///
             let valueToReturn: Value
             
-            ///
             switch _valueStorage {
-                
-            ///
             case .value (let value):
-                
-                ///
                 valueToReturn = value
                 
-            ///
             case .notYetComputed (let computeValue):
-                
-                ///
                 let value = computeValue()
-                
-                ///
                 self._valueStorage = .value(value)
-                
-                ///
                 valueToReturn = value
             }
             
-            ///
             MainActorValueSourceMonitor
                 .shared
                 .report(accessOf: self)
             
-            ///
             return valueToReturn
         }
-        
-        ///
         set {
-            
-            ///
             for reaction in _willSet.orderedReactions {
                 reaction(())
             }
             
-            ///
             _valueStorage = .value(newValue)
             
-            ///
             for reaction in _didSet.orderedReactions {
                 reaction(newValue)
             }
         }
     }
     
-    ///
     public func setValue(to newValue: Value) {
         self.currentValue = newValue
     }
     
-    ///
     public func mutateValue(using mutation: (inout Value)->()) {
         var copy = currentValue
         mutation(&copy)

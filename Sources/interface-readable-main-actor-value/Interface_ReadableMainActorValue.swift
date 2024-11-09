@@ -10,7 +10,7 @@
 
 
 ///
-public protocol Interface_ReadableMainActorValue<Value>: Interface_MainActorValueSourceAccessor {
+public protocol Interface_ReadableMainActorValue<Value>: Sendable, Interface_MainActorValueSourceAccessor {
     
     ///
     @MainActor

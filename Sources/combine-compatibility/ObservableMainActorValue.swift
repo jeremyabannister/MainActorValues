@@ -6,10 +6,9 @@
 //
 
 ///
-public final class ObservableMainActorValue<
-    Value
->: ObservableObject,
-   Interface_ReadableMainActorValue {
+public final class ObservableMainActorValue<Value>:
+    ObservableObject,
+    Interface_ReadableMainActorValue {
     
     ///
     public let objectWillChange: AnyPublisher<Void, Never>
@@ -87,3 +86,5 @@ extension Interface_SubscribableMainActorValue {
         .init(self)
     }
 }
+
+extension AnyPublisher: @retroactive @unchecked Sendable { }

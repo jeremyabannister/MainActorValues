@@ -1,10 +1,7 @@
 // swift-tools-version: 5.10
 
-
-///
 import PackageDescription
 
-///
 let package = Package(
     name: "MainActorValues",
     platforms: [.macOS(.v10_15), .iOS(.v13), .watchOS(.v6), .tvOS(.v13)],
@@ -15,22 +12,16 @@ let package = Package(
         ),
     ],
     dependencies: [
-        
-        ///
         .package(
             url: "https://github.com/jeremyabannister/FoundationToolkit",
-            "0.8.0" ..< "0.9.0"
+            .upToNextMinor(from: "0.8.4")
         ),
-        
-        ///
         .package(
             url: "https://github.com/jeremyabannister/LeakTracker-package",
-            "0.1.0" ..< "0.2.0"
+            .upToNextMinor(from: "0.1.1")
         ),
     ],
     targets: expand([
-        
-        ///
         umbrellaTarget(
             name: "MainActorValues",
             submoduleDependencies: [
@@ -42,8 +33,6 @@ let package = Package(
                 "subscribable-main-actor-value-binding",
             ]
         ),
-        
-        ///
         testedSubmoduleTarget(
             name: "combine-compatibility",
             submoduleDependencies: [
@@ -110,8 +99,6 @@ let package = Package(
             name: "interface-main-actor-value-source-accessor"
         ),
         
-        
-        ///
         testedSubmoduleTarget(
             name: "main-actor-reaction-managers",
             submoduleDependencies: [
@@ -142,21 +129,18 @@ let package = Package(
     ])
 )
 
-///
 func umbrellaTarget(
     name: String,
     submoduleDependencies: [String] = [],
     otherDependencies: [Target.Dependency] = []
 ) -> Target {
     
-    ///
     .target(
         name: name,
         dependencies: submoduleDependencies.map { .init(stringLiteral: submoduleName($0)) } + otherDependencies
     )
 }
 
-///
 func testedSubmoduleTarget(
     name: String,
     submoduleDependencies: [String] = [],
@@ -164,7 +148,6 @@ func testedSubmoduleTarget(
     nonstandardLocation: String? = nil
 ) -> [Target] {
     
-    ///
     [
         submoduleTarget(
             name: name,
@@ -183,7 +166,6 @@ func testedSubmoduleTarget(
     ]
 }
 
-///
 func submoduleTarget(
     name: String,
     submoduleDependencies: [String] = [],
@@ -191,7 +173,6 @@ func submoduleTarget(
     nonstandardLocation: String? = nil
 ) -> Target {
     
-    ///
     .target(
         name: submoduleName(name),
         dependencies: submoduleDependencies.map { .init(stringLiteral: submoduleName($0)) } + otherDependencies,
@@ -199,41 +180,32 @@ func submoduleTarget(
     )
 }
 
-///
 func submoduleName(
     _ name: String
 ) -> String {
     
-    ///
     "MainActorValues-\(name)"
 }
 
-
-
-///
 func expand(
     _ targetProviders: [any TargetProvider]
 ) -> [Target] {
     
-    ///
     targetProviders
         .flatMap { $0.targets() }
 }
 
-///
+// MARK: - TargetProvider
+protocol TargetProvider {
+    func targets() -> [Target]
+}
 extension Target: TargetProvider {
     func targets() -> [Target] {
         [self]
     }
 }
-
 extension [Target]: TargetProvider {
     func targets() -> [Target] {
         self
     }
-}
-
-///
-protocol TargetProvider {
-    func targets() -> [Target]
 }

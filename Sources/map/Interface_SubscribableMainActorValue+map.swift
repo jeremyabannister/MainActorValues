@@ -12,7 +12,7 @@ extension Interface_SubscribableMainActorValue {
     public func map_subscribable<
         NewValue
     >(
-        _ transform: @escaping (Value)->NewValue
+        _ transform: @escaping @Sendable (Value)->NewValue
     ) -> any Interface_SubscribableMainActorValue<NewValue> {
         
         ///
